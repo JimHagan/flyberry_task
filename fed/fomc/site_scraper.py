@@ -21,7 +21,6 @@ def get_latest_fed_schedule():
     tables = soup.findAll("table")
     print "tables: ", len(tables)
     for tbl in tables:
-        #print tbl.get("class")
         if tbl.get("class", [None])[0] in ["pressConference", "alternate"]:
             print "Processing press conference..."
             rows = tbl.findAll("tr")
@@ -35,7 +34,7 @@ def get_latest_fed_schedule():
                     key = item.get("class", [])
                     if key:
                         meeting_dict[key[0]] = item.text
-                        results.append(meeting_dict) 
+                results.append(meeting_dict) 
     return results
             
 

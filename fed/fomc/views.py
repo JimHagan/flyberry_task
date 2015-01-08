@@ -39,27 +39,57 @@ def version(request):
     return successful_response(json.dumps(data))
 
 
+
+"""
+This is the primary method for querying FOMC ("Federal Reserve Open Market Committee")
+meeting information.
+
+base URL...
+
+<server>/fed/fomc/calendar  
+
+By itself the base URL will return a JSON repsonse with a data element containing a stringified JSON
+list of meeting descriptions
+
+Header info (successful response)...
+
+{"status": "ok", "version": "1.0", "data": [<stringfied list of elements>]}
+
+Example of a meeting element...
+
+{"meeting_year": "2014", "meeting_end_date": "2014-01-29 00:00:00+00:00", "data_retrieval_date": "2015-01-08 19:44:04.281746+00:00", "meeting_start_date": "2014-01-28 00:00:00+00:00", "projections": "False", "statement": "False", "meeting_name": "FOMC_2014_JANUARY", "estimated_release": "2014-01-29 07:00:00+00:00"}
+
+Example of an error return value...
+
+{"status": "error", "message": "404 Error", "code": "404"} 
+
+Supported Query Params
+
+1. meeting_start_date_range=<dt1>, <dt2>
+2.
+
+"""
 def calendar(request):
     # TODO: If there were more time, I'd create a data_pull class which would 
     # encapsulate a complete run of the data. Thereore I'd save every object we ever pull, but
     # have the notion of the most recent.  In this case if the last retrieval date is older than
     # a certain number of days, we'll just blow away th old data and re-pull.
-    refresh_needed = False
+    refresh_needed = True
     recent_recs = MeetingScheduleEntry.objects.filter(data_retrieval_date__gte=datetime.utcnow() - timedelta(days=AGE_LIMIT_DAYS))
-    refresh_needed = True # not recent_recs.exists()
+    refresh_needed = not recent_recs.exists()
     
     if refresh_needed:
         MeetingTableSummary.objects.all().delete()
         MeetingScheduleEntry.objects.all().delete()
+        print "Getting schedules..."
         raw_schedules = site_scraper.get_latest_fed_schedule()
         for sch in raw_schedules:
-            print sch
-            schedule_object = MeetingScheduleEntry()
-            schedule_object.from_original_dict(sch)
-            schedule_object.save()
-            #print schedule_object.as_dict()
-    
-    all_objects = MeetingScheduleEntry.objects.all()
-    print all_objects
+            if "month" in sch:
+                schedule_object = MeetingScheduleEntry()
+                schedule_object.from_original_dict(sch)
+                schedule_object.save()
+        print "Got schedules..."
+        
+    all_objects = MeetingScheduleEntry.objects.all().order_by("-meeting_start_date")
     processed_objects = [obj.as_dict() for obj in all_objects]
     return successful_response(processed_objects)
