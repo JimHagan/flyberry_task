@@ -37,9 +37,3 @@ If a query is unsuccessful, an "error" response will be returned:
  "code": "short_code",
  "message": "A longer description of the error"
 }
-
-For example, entering an unknown URL will return the fact that a 404 error occcured in our custom JSON format.
-
-Example...
-
-{"status": "error", "message": "404 Error", "code": "404"}
