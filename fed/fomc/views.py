@@ -46,7 +46,7 @@ def calendar(request):
     # a certain number of days, we'll just blow away th old data and re-pull.
     refresh_needed = False
     recent_recs = MeetingScheduleEntry.objects.filter(data_retrieval_date__gte=datetime.utcnow() - timedelta(days=AGE_LIMIT_DAYS))
-    refresh_needed = not recent_recs.exists()
+    refresh_needed = True # not recent_recs.exists()
     
     if refresh_needed:
         MeetingTableSummary.objects.all().delete()

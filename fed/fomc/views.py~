@@ -6,7 +6,7 @@ from fomc import site_scraper
 from fomc.models import MeetingScheduleEntry, MeetingTableSummary
 
 API_VERSION = "1.0"
-AGE_LIMIT_DAYS = 7
+AGE_LIMIT_DAYS = 7 # abitrary
 
 def JsonResponse(response, status=200):
     return HttpResponse(json.dumps(response), content_type='application/json', status=status)

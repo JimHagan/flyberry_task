@@ -3,6 +3,8 @@ from datetime import datetime
 from django.db import models
 
 class MeetingScheduleEntry(models.Model):
+    meeting_year = models.IntegerField(null=True)
+    meeting_name = models.CharField(null=True, max_length=100)
     meeting_start_date = models.DateTimeField(null=True)
     meeting_end_date = models.DateTimeField(null=True)
     statement = models.BooleanField(default=False)
@@ -13,7 +15,7 @@ class MeetingScheduleEntry(models.Model):
 
     def as_dict(self):
         output_dict = {}
-        for column in ["id", "meeting_start_date",
+        for column in ["meeting_name", "meeting_month", "meeting_start_date",
                         "meeting_end_date", "data_retrieval_date",
                         "statement", "projections",
                         "estimated_release"]:
@@ -21,6 +23,8 @@ class MeetingScheduleEntry(models.Model):
         return output_dict
     
     def from_original_dict(self, meeting_dict):
+        self.meeting_year = meeting_dict["year"]
+        self.meeting_name = ("FOMC_%s_%s" % (self.meeting_year, meeting_dict["month"])).upper()
         self.raw_entry = json.dumps(meeting_dict)
         self.data_retrieval_date = datetime.strptime(meeting_dict["data_retrieval_date"], "%Y-%m-%d %H:%M:%S.%f")
         timezone_offset = 5 # a kludge
