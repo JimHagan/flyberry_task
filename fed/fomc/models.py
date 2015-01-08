@@ -1,12 +1,40 @@
+import json
+from datetime import datetime
 from django.db import models
 
 class MeetingScheduleEntry(models.Model):
-    meeting_start_date = models.DateTimeField()
-    meeting_end_date = models.DateTimeField()
+    meeting_start_date = models.DateTimeField(null=True)
+    meeting_end_date = models.DateTimeField(null=True)
     statement = models.BooleanField(default=False)
-    projecttions = models.BooleanField(default=False)
-    data_retrieval_date = models.DateTimeField()
-    estimated_release = models.DateTimeField()
+    projections = models.BooleanField(default=False)
+    data_retrieval_date = models.DateTimeField(null=True)
+    estimated_release = models.DateTimeField(null=True)
+    raw_entry = models.TextField(null=True)
+
+    def as_dict(self):
+        output_dict = {}
+        for column in ["id", "meeting_start_date",
+                        "meeting_end_date", "data_retrieval_date",
+                        "statement", "projections",
+                        "estimated_release"]:
+            output_dict[column] = str(getattr(self, column))
+        return output_dict
+    
+    def from_original_dict(self, meeting_dict):
+        self.raw_entry = json.dumps(meeting_dict)
+        self.data_retrieval_date = datetime.strptime(meeting_dict["data_retrieval_date"], "%Y-%m-%d %H:%M:%S.%f")
+        timezone_offset = 5 # a kludge
+        raw_days = meeting_dict["day"]
+        days = raw_days.replace("*","").split("-")
+        if len(days) == 2:
+            d1 = int(days[0])
+            d2 = int(days[1])
+            month_num = datetime.strptime(meeting_dict["month"][:3], "%b").month
+         
+            self.meeting_start_date = datetime(meeting_dict["year"], month_num, d1)
+            self.meeting_end_date = datetime(meeting_dict["year"], month_num, d2)
+            self.estimated_release = datetime(meeting_dict["year"], month_num, d2, 2 + timezone_offset)
+        
     
 
 class MeetingTableSummary(models.Model):
