@@ -31,4 +31,4 @@ def version(request):
             "last revised": "January 7, 2015",
             "description": "Federal Reserve Information API",
             "source repository": "https://github.com/JimHagan/flyberry_task.git"}
-    return success_response(data)
+    return successful_response(data)
