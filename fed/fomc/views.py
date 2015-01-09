@@ -36,8 +36,11 @@ def version(request):
             "last revised": "January 7, 2015",
             "description": "Federal Reserve Information API",
             "source repository": "https://github.com/JimHagan/flyberry_task.git"}
-    return successful_response(json.dumps(data))
-
+    data_style = request.GET.get("data_style", "string")
+    if data_style.lower() == "json":
+        return successful_response(data)
+    else:
+        return successful_response(json.dumps(data))
 
 
 """
@@ -92,4 +95,9 @@ def calendar(request):
         
     all_objects = MeetingScheduleEntry.objects.all().order_by("-meeting_start_date")
     processed_objects = [obj.as_dict() for obj in all_objects]
-    return successful_response(processed_objects)
+    
+    data_style = request.GET.get("data_style", "string")
+    if data_style.lower() == "json":
+        return successful_response(processed_objects)
+    else:
+        return successful_response(json.dumps(processed_objects))
