@@ -94,10 +94,20 @@ def calendar(request):
         print "Got schedules..."
         
     all_objects = MeetingScheduleEntry.objects.all().order_by("-meeting_start_date")
-    processed_objects = [obj.as_dict() for obj in all_objects]
+    #processed_objects = [obj.as_dict() for obj in all_objects]
+    transposed_dict = {}
+    for obj in all_objects:
+        obj_dict = obj.as_dict()
+        _ID = obj_dict["meeting_name"]
+        for k, v in obj_dict.items():
+            if not k in transposed_dict:
+                transposed_dict[k] = {_ID: v}
+            else:
+                transposed_dict[k][_ID] = v
+            
     
     data_style = request.GET.get("data_style", "string")
     if data_style.lower() == "json":
-        return successful_response(processed_objects)
+        return successful_response(transposed_dict)
     else:
-        return successful_response(json.dumps(processed_objects))
+        return successful_response(json.dumps(transposed_dict))
