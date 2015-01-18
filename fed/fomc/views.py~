@@ -8,6 +8,23 @@ from fomc.models import MeetingScheduleEntry, MeetingTableSummary
 API_VERSION = "1.0"
 AGE_LIMIT_DAYS = 7 # abitrary
 
+def _scrape_dates():
+    return MeetingScheduleEntry.objects.order_by("-scrape_date").values_list("scrape_date", flat=True).distinct()
+    
+
+def _transpose_dicts(in_data, key, columns):
+    transposed_dict = {}
+    for obj in in_data:
+        obj_dict = obj.as_dict(columns)
+        _ID = obj_dict[key]
+        for k, v in obj_dict.items():
+            if k != key:
+                if not k in transposed_dict:
+                    transposed_dict[k] = {_ID: v}
+                else:
+                    transposed_dict[k][_ID] = v
+    return transposed_dict
+
 def JsonResponse(response, status=200):
     return HttpResponse(json.dumps(response), content_type='application/json', status=status)
 
@@ -32,10 +49,16 @@ def error500(request):
 
 
 def version(request):
+    retrieval_dates = _scrape_dates()
+    refresh_date = None
+    if retrieval_dates:
+        refresh_date = "%s" % retrieval_dates[0]
     data = {"author": "Jim Hagan",
-            "last revised": "January 7, 2015",
+            "software last revised": "2015-01-18 13:23:15.927801", # eventually pull this from GIT
+            "most recent scrape date": "%s" % refresh_date,
             "description": "Federal Reserve Information API",
-            "source repository": "https://github.com/JimHagan/flyberry_task.git"}
+            "source repository": "https://github.com/JimHagan/flyberry_task.git",
+            "all scrape dates": [str(r) for r in retrieval_dates]}
     data_style = request.GET.get("data_style", "string")
     if data_style.lower() == "json":
         return successful_response(data)
@@ -56,30 +79,38 @@ list of meeting descriptions
 
 Header info (successful response)...
 
-{"status": "ok", "version": "1.0", "data": [<stringfied list of elements>]}
+{"status": "ok", "version": "1.0", "data": [<format dependent elements>]}
 
 Example of a meeting element...
 
-{"meeting_year": "2014", "meeting_end_date": "2014-01-29 00:00:00+00:00", "data_retrieval_date": "2015-01-08 19:44:04.281746+00:00", "meeting_start_date": "2014-01-28 00:00:00+00:00", "projections": "False", "statement": "False", "meeting_name": "FOMC_2014_JANUARY", "estimated_release": "2014-01-29 07:00:00+00:00"}
+{"meeting_year": "2014", "meeting_end_date": "2014-01-29 00:00:00+00:00", "scrape_date": "2015-01-08 19:44:04.281746+00:00", "meeting_start_date": "2014-01-28 00:00:00+00:00", "projections": "False", "statement": "False", "meeting_name": "FOMC_2014_JANUARY", "estimated_release": "2014-01-29 07:00:00+00:00"}
 
-Example of an error return value...
+Options...
 
-{"status": "error", "message": "404 Error", "code": "404"} 
+transpose : (default="true") - Puts the data in column order.  If transpose is false, each JSON object represents a row.
+stringify : (default="true") - Puts the JSON data element in a string format.
+columns : (default = "") - This list of column names describes which fields to output.  If "" all standard fields will be output.
 
-Supported Query Params
+Sample URLs
 
-1. meeting_start_date_range=<dt1>, <dt2>
-2.
+
+http://localhost:8000/fed/fomc/calendar?transpose=false&stringify=false
+
+http://localhost:8000/fed/fomc/calendar?transpose=false&stringify=false&columns=scrape_date,meeting_name,projections,statement
+
+http://localhost:8000/fed/fomc/calendar?columns=meeting_name,projections,scrape_date
+
+http://localhost:8000/fed/fomc/calendar?columns=meeting_name,projections,scrape_date&transpose=false&stringify=false
 
 """
 def calendar(request):
     # TODO: If there were more time, I'd create a data_pull class which would 
     # encapsulate a complete run of the data. Thereore I'd save every object we ever pull, but
-    # have the notion of the most recent.  In this case if the last retrieval date is older than
+    # have an encaspulating metadata hierarcy.  In this case if the last retrieval date is older than
     # a certain number of days, we'll just blow away th old data and re-pull.
     refresh_needed = True
-    recent_recs = MeetingScheduleEntry.objects.filter(data_retrieval_date__gte=datetime.utcnow() - timedelta(days=AGE_LIMIT_DAYS))
-    refresh_needed = not recent_recs.exists()
+    recent_recs = MeetingScheduleEntry.objects.filter(scrape_date__gte=datetime.utcnow() - timedelta(days=AGE_LIMIT_DAYS))
+    #refresh_needed = not recent_recs.exists()
     
     if refresh_needed:
         MeetingTableSummary.objects.all().delete()
@@ -93,22 +124,20 @@ def calendar(request):
                 schedule_object.save()
         print "Got schedules..."
         
+
     all_objects = MeetingScheduleEntry.objects.all().order_by("-meeting_start_date")
-    #processed_objects = [obj.as_dict() for obj in all_objects]
-    transposed_dict = {}
-    for obj in all_objects:
-        obj_dict = obj.as_dict()
-        _ID = obj_dict["meeting_name"]
-        print _ID
-        for k, v in obj_dict.items():
-            if not k in transposed_dict:
-                transposed_dict[k] = {_ID: v}
-            else:
-                transposed_dict[k][_ID] = v
-            
     
-    data_style = request.GET.get("data_style", "string")
-    if data_style.lower() == "json":
-        return successful_response(transposed_dict)
+    transpose = request.GET.get("transpose", "true")
+    
+    columns = request.GET.get("columns", "").split(",")
+    if columns == ['']:
+        columns = []
+
+    output_dict = _transpose_dicts(all_objects, "id", columns) if transpose.lower()=="true" else [obj.as_dict(columns) for obj in all_objects]
+    
+    
+    stringify = request.GET.get("stringify", "true")
+    if stringify.lower() == "false":
+        return successful_response(output_dict)
     else:
-        return successful_response(json.dumps(transposed_dict))
+        return successful_response(json.dumps(output_dict))

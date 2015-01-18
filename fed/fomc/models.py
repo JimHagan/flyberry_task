@@ -9,28 +9,37 @@ class MeetingScheduleEntry(models.Model):
     meeting_start_date = models.DateTimeField(null=True)
     meeting_end_date = models.DateTimeField(null=True)
     statement = models.BooleanField(default=False)
+    statement_url = models.CharField(null=True, max_length=256)
     projections = models.BooleanField(default=False)
-    data_retrieval_date = models.DateTimeField(null=True)
+    scrape_date = models.DateTimeField(null=True)
     estimated_release = models.DateTimeField(null=True)
     raw_entry = models.TextField(null=True)
     unscheduled = models.BooleanField(default=False)
+    #Not as robust as possible but covers most use cases
+    class Meta:
+        unique_together = ("meeting_name", "scrape_date")
 
-    def as_dict(self):
+    def as_dict(self, columns = []):
         output_dict = {}
-        for column in ["meeting_name", "meeting_year", "meeting_month",
+        _output_columns = ["id"]
+        output_columns = ["id","meeting_name", "meeting_year", "meeting_month",
                         "unscheduled", "meeting_start_date",
-                        "meeting_end_date", "data_retrieval_date",
-                        "statement", "projections",
-                        "estimated_release"]:
+                        "meeting_end_date", "scrape_date",
+                        "statement", "statement_url", "projections",
+                        "estimated_release"] if not len(columns) else ["id"] + columns
+        for column in output_columns:
             output_dict[column] = str(getattr(self, column))
         return output_dict
     
     def from_original_dict(self, meeting_dict):        
         self.meeting_month = meeting_dict["month"]
         self.meeting_year = meeting_dict["year"]
+        if "statement_url" in meeting_dict:
+            self.statement_url = meeting_dict["statement_url"]
+            self.statement=True
         self.meeting_name = ("FOMC_%s_%s" % (self.meeting_year, meeting_dict["month"])).upper()
         self.raw_entry = json.dumps(meeting_dict)
-        self.data_retrieval_date = datetime.strptime(meeting_dict["data_retrieval_date"], "%Y-%m-%d %H:%M:%S.%f")
+        self.scrape_date = datetime.strptime(meeting_dict["scrape_date"], "%Y-%m-%d %H:%M:%S.%f")
         timezone_offset = 5 # a kludge
         raw_days = meeting_dict["day"]
         if "unscheduled" in raw_days.lower():
@@ -60,5 +69,5 @@ class MeetingScheduleEntry(models.Model):
 class MeetingTableSummary(models.Model):
     title = models.CharField(max_length=100)
     table_as_json = models.TextField()
-    data_retrieval_date = models.DateTimeField()
+    scrape_date = models.DateTimeField()
     meeting = models.ForeignKey(MeetingScheduleEntry)
