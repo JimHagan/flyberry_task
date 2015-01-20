@@ -11,7 +11,7 @@ API_VERSION = "1.0"
 AGE_LIMIT_DAYS = 7 # abitrary
 
 def _timestamp_from_datetime(dt):
-    return time.mktime(your_datetime.timetuple()) * 1000
+    return time.mktime(dt.timetuple()) * 1000
 
 def _scrape_dates():
     return MeetingScheduleEntry.objects.order_by("-scrape_date").values_list("scrape_date", flat=True).distinct()
@@ -57,13 +57,13 @@ def version(request):
     retrieval_dates = _scrape_dates()
     refresh_date = None
     if retrieval_dates:
-        refresh_date = "%s" % retrieval_dates[0]
+        refresh_date = retrieval_dates[0]
     data = {"author": "Jim Hagan",
-            "software last revised": "2015-01-18 13:23:15.927801", # eventually pull this from GIT
-            "most recent scrape date": "%s" % refresh_date,
+            "software last revised": _timestamp_from_datetime(datetime(2015, 1, 20)), # eventually pull this from GIT
+            "most recent scrape date": _timestamp_from_datetime(refresh_date),
             "description": "Federal Reserve Information API",
             "source repository": "https://github.com/JimHagan/flyberry_task.git",
-            "all scrape dates": [str(r) for r in retrieval_dates]}
+            "all scrape dates": [_timestamp_from_datetime(r) for r in retrieval_dates]}
     data_style = request.GET.get("data_style", "string")
     if data_style.lower() == "json":
         return successful_response(data)
@@ -200,7 +200,6 @@ http://localhost:8000/fed/fomc/pace_of_firming?end_scrape=1420848000000.0
 
 def pace_of_firming(request):
     pof_tables = ProjectionTableSummary.objects.filter(table_name__icontains="appropriate_pace_of_policy_firming")
-    print pof_tables.count()
     output_list = []
 
     meeting_ids = request.GET.get("meeting_id", None)
