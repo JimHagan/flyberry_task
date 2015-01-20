@@ -1,6 +1,11 @@
 import json
+import time
 from datetime import datetime
 from django.db import models
+
+def _timestamp_from_datetime(dt):
+    return time.mktime(dt.timetuple()) * 1000
+
 
 class MeetingScheduleEntry(models.Model):
     meeting_year = models.IntegerField(null=True)
@@ -30,7 +35,7 @@ class MeetingScheduleEntry(models.Model):
                         "statement", "statement_url", "projections","projections_pdf_url", "projections_html_url",
                         "estimated_release"] if not len(columns) else ["id"] + columns
         for column in output_columns:
-            output_dict[column] = str(getattr(self, column))
+            output_dict[column] = _timestamp_from_datetime(getattr(self, column)) if "date" in column or "estimated_release" in column else str(getattr(self, column))
         return output_dict
     
            
@@ -93,7 +98,7 @@ class ProjectionTableSummary(models.Model):
         _output_columns = ["m"]
         output_columns = ["table_name", "scrape_date"]
         for column in output_columns:
-            output_dict[column] = str(getattr(self, column))
+            output_dict[column] = _timestamp_from_datetime(getattr(self, column)) if "date" in column else str(getattr(self, column))
         output_dict["meeting_entry_id"] = self.meeting_schedule_entry_id
         output_dict["meeting_name"] = self.meeting_schedule_entry.meeting_name
         output_dict["table_body"] = json.loads(self.table_body_as_json)
