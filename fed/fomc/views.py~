@@ -200,7 +200,6 @@ http://localhost:8000/fed/fomc/pace_of_firming?end_scrape=1420848000000.0
 
 def pace_of_firming(request):
     pof_tables = ProjectionTableSummary.objects.filter(table_name__icontains="appropriate_pace_of_policy_firming")
-    print pof_tables.count()
     output_list = []
 
     meeting_ids = request.GET.get("meeting_id", None)
