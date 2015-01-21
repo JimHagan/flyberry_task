@@ -1,3 +1,23 @@
+################
+Developer's Notes
+
+1. This exercise was fun and engaging
+2. I spent about 8 to 10 hours in total
+3. I got the service stood up and about 70% of the parsing written
+   prior to leaving for vacation.  I then was not able to get back to the task
+   until the 18th of January. 
+4. I would suggest the following refactors...
+    a. sqlite should be replaced by mongo or some other scalable data store
+    b. a scheduled asynchronous job should be used to refresh the data.
+       Currently I'm using a hack that checks for refresh on the web view function
+       which is not a production level practice.
+    c. I would also like to use something like an MD5 signature against each scraped page so that
+       I could tell if the current page were identical to one previously scraped.  If so, I wouldn't
+       bloat th data store with previously scraped data.
+    d. I would also like to improve the data shaping of the JSON version of the projection tables.
+
+################
+
 Simple API for retrieving data from a Federal Reserve web site
 
 Usage
@@ -63,6 +83,10 @@ http://localhost:8000/fed/fomc/pace_of_firming
 http://localhost:8000/fed/fomc/pace_of_firming?stringify=False
 
 http://localhost:8000/fed/fomc/pace_of_firming?stringify=True&meeting_name=FOMC_2014_MARCH,FOMC_2014_JUNE
+
+http://localhost:8000/fed/fomc/pace_of_firming?meeting_id=4326
+
+http://localhost:8000/fed/fomc/pace_of_firming?meeting_id=4326,4328
 
 http://localhost:8000/fed/fomc/pace_of_firming?begin_release=1401595200000.0  
 
