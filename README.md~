@@ -3,8 +3,8 @@ Developer's Notes
 
 1. This exercise was fun and engaging
 2. I spent about 8 to 10 hours in total
-3. I got the service stood up and abou 70% of the parsing written
-   prior to leavin for vacation.  I then was not able to get back to the task
+3. I got the service stood up and about 70% of the parsing written
+   prior to leaving for vacation.  I then was not able to get back to the task
    until the 18th of January. 
 4. I would suggest the following refactors...
     a. sqlite should be replaced by mongo or some other scalable data store
