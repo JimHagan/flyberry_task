@@ -1,4 +1,4 @@
-# Federal Open Market Committee Site Miner
+# FOMC Site Miner
 
 ###Developer's Notes
 
