@@ -1,4 +1,4 @@
-# FOMC Site Miner
+# FOMC Site Mining API
 
 ###Developer's Notes
 
@@ -11,7 +11,6 @@ I would suggest the following refactors...
 * a scheduled asynchronous job should be used to refresh the data. Currently I'm using a hack that checks for refresh on the web view function which is not a production level practice. 
 * I would also like to use something like an MD5 signature against each scraped page so that I could tell if the current page were identical to one previously scraped. If so, I wouldn't bloat th data store with previously scraped data. 
 * Finally, I'd like to improve the data shaping of the JSON version of the projection tables.
-Simple API for retrieving data from a Federal Reserve web site
 
 ###Usage
 
