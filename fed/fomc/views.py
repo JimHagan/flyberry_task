@@ -202,6 +202,7 @@ def pace_of_firming(request):
     pof_tables = ProjectionTableSummary.objects.filter(table_name__icontains="appropriate_pace_of_policy_firming")
     output_list = []
 
+    # There has got to be a more pythonic way of collapsing this repetitive filter code, but I'm not sure at the moment.
     meeting_ids = request.GET.get("meeting_id", None)
     if meeting_ids:
         pof_tables = pof_tables.filter(meeting_schedule_entry_id__in=[int(i) for i in meeting_ids.split(',')])
