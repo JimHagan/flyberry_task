@@ -16,14 +16,14 @@ def _get_soup_from_page_text(page_text):
 
 
 #TODO: This is not efficient but we know it and should fix it.
-def is_ascii(s):
+def _is_ascii(s):
     try:
         s.decode('ascii')
         return True
     except UnicodeEncodeError:
         return False
 
-def format_cell(cell):
+def _format_cell(cell):
     raw = cell.strip().replace('\n', '')
    
     if (raw == "-"):
@@ -36,7 +36,7 @@ def format_cell(cell):
             return val
         except:
             #print raw
-            fixed =  "".join([r for r in raw if is_ascii(r)])
+            fixed =  "".join([r for r in raw if _is_ascii(r)])
             return fixed
      
         
@@ -59,13 +59,13 @@ def parse_projection_tables(page_url):
             if table_div.get("class", [])[0] in ["page", "pubtables"]:
                 table_header = table_div.findNext('thead')
                 items = table_header.findAll("tr")[0]
-                raw_header_list = [format_cell(i.text) for i in items.findAll("th")]
+                raw_header_list = [_format_cell(i.text) for i in items.findAll("th")]
               
                 table["dat"].append(raw_header_list)
                 table_body = table_div.findNext('tbody')
                 rows = table_body.findAll("tr")
                 for r in rows:
-                    raw_row_data = [format_cell(col.text) for col in r.findAll('td')]
+                    raw_row_data = [_format_cell(col.text) for col in r.findAll('td')]
                     table["dat"].append(raw_row_data)
                 tables.append(table)
     return tables
