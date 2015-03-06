@@ -6,9 +6,9 @@
 
 *Commonly used URLS*
 
-<http://jimhagan.us/fed/fomc/calendar?stringify=False&transpose=True>
+<http://jimhagan.us/fed/fomc/calendar?stringify=False&transpose=False>
 
-<http://jimhagan.us/fed/fomc//pace_of_firming?stringify=True&meeting_name=FOMC_2014_MARCH,FOMC_2014_JUNE>
+<http://jimhagan.us/fed/fomc/pace_of_firming?stringify=True&meeting_name=FOMC_2014_MARCH,FOMC_2014_JUNE>
 
 ###Developer's Notes
 
