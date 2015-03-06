@@ -1,4 +1,12 @@
 # FOMC Site Mining API
+###Test Server
+
+<http://jimhagan.us/fed/fomc>
+
+*Commonly used URLS*
+
+<http://jimhagan.us/fed/fomc/calendar?stringify=False&transpose=True>
+<http://jimhagan.us/fed/fomc//pace_of_firming?stringify=True&meeting_name=FOMC_2014_MARCH,FOMC_2014_JUNE>
 
 ###Developer's Notes
 
